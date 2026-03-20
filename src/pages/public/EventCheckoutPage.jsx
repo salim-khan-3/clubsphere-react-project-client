@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Star, CheckCircle } from "lucide-react";
+import { ArrowLeft, Shield, CheckCircle } from "lucide-react";
 import axiosInstance from "../../utils/axiosInstance";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -12,8 +12,7 @@ import toast from "react-hot-toast";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-// ── Payment Form ──────────────────────────────────────────────────────────────
-const CheckoutForm = ({ club, clientSecret, onSuccess }) => {
+const EventCheckoutForm = ({ event, clientSecret, onSuccess }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -37,11 +36,11 @@ const CheckoutForm = ({ club, clientSecret, onSuccess }) => {
       }
 
       if (paymentIntent.status === "succeeded") {
-        await axiosInstance.post("/payments/confirm-membership", {
-          clubId: club._id,
-          paymentIntentId: paymentIntent.id,
+        await axiosInstance.post("/memberships/event/register", {
+          eventId: event._id,
+          paymentId: paymentIntent.id,
         });
-        toast.success("Payment successful! Welcome to the club! 🎉");
+        toast.success("Payment successful! You're registered! 🎉");
         onSuccess();
       }
     } catch (err) {
@@ -54,7 +53,6 @@ const CheckoutForm = ({ club, clientSecret, onSuccess }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Test Card Info */}
       <div className="bg-primary-900/20 border border-primary-700/30 rounded-xl p-4">
         <p className="text-primary-300 text-xs font-semibold mb-2">
           🧪 Test Mode — Use this card:
@@ -65,7 +63,6 @@ const CheckoutForm = ({ club, clientSecret, onSuccess }) => {
         </p>
       </div>
 
-      {/* Card Input */}
       <div>
         <label className="input-label">Card Details</label>
         <div className="input-field py-4">
@@ -104,21 +101,20 @@ const CheckoutForm = ({ club, clientSecret, onSuccess }) => {
         ) : (
           <>
             <Shield className="w-5 h-5" />
-            Pay ${club.membershipFee} & Join Club
+            Pay ${event.eventFee} & Register
           </>
         )}
       </button>
 
       <p className="text-center text-gray-600 text-xs flex items-center justify-center gap-1.5">
         <Shield className="w-3 h-3" />
-        Secured by Stripe — your card info is never stored
+        Secured by Stripe
       </p>
     </form>
   );
 };
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
-const CheckoutPage = () => {
+const EventCheckoutPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -129,26 +125,22 @@ const CheckoutPage = () => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  const { data: club, isLoading } = useQuery({
-    queryKey: ["club", id],
-    queryFn: () => axiosInstance.get(`/clubs/${id}`).then((r) => r.data.club),
+  const { data: event, isLoading } = useQuery({
+    queryKey: ["event", id],
+    queryFn: () => axiosInstance.get(`/events/${id}`).then((r) => r.data.event),
   });
 
   useEffect(() => {
-    if (!club || club.membershipFee <= 0) return;
+    if (!event || !event.isPaid) return;
     axiosInstance
-  .post("/payments/create-membership-intent", { clubId: id })
-  .then((r) => setClientSecret(r.data.clientSecret))
-  .catch((err) => {
-    console.log("Payment error:", err.response?.data);
-    toast.error(err.response?.data?.message || "Failed to initialize payment");
-  });
-  }, [club, id]);
+      .post("/payments/create-event-intent", { eventId: id })
+      .then((r) => setClientSecret(r.data.clientSecret))
+      .catch((err) => toast.error(err.response?.data?.message || "Failed to initialize payment"));
+  }, [event, id]);
 
   if (isLoading) return <LoadingSpinner fullScreen />;
-  if (!club) return null;
+  if (!event) return null;
 
-  // Payment Success Screen
   if (paymentSuccess) {
     return (
       <div className="min-h-screen bg-hero-gradient flex items-center justify-center px-4">
@@ -162,19 +154,18 @@ const CheckoutPage = () => {
             <CheckCircle className="w-12 h-12 text-green-400" />
           </div>
           <h1 className="text-4xl font-display font-bold text-white mb-4">
-            Welcome to the Club! 🎉
+            You're Registered! 🎉
           </h1>
           <p className="text-gray-400 mb-8">
-            You are now a member of{" "}
-            <span className="text-primary-300 font-semibold">{club.clubName}</span>.
-            Your membership is active for 1 year.
+            You have successfully registered for{" "}
+            <span className="text-primary-300 font-semibold">{event.title}</span>.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/dashboard/member/memberships" className="btn-primary">
-              View My Memberships
+            <Link to="/dashboard/member/events" className="btn-primary">
+              View My Events
             </Link>
-            <Link to="/clubs" className="btn-outline">
-              Browse More Clubs
+            <Link to="/events" className="btn-outline">
+              Browse More Events
             </Link>
           </div>
         </motion.div>
@@ -185,45 +176,34 @@ const CheckoutPage = () => {
   return (
     <div className="min-h-screen bg-dark-900 pt-24 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link to={`/clubs/${id}`}
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Club
+        <Link
+          to={`/events/${id}`}
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Event
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left — Club Info */}
+          {/* Left — Event Info */}
           <div>
             <h1 className="text-3xl font-display font-bold text-white mb-2">
-              Join <span className="text-gradient-purple">{club.clubName}</span>
+              Register for{" "}
+              <span className="text-gradient-purple">{event.title}</span>
             </h1>
             <p className="text-gray-400 mb-8">
-              Complete your membership payment to get full access.
+              Complete payment to confirm your registration.
             </p>
 
-            <div className="card overflow-hidden mb-6">
-              <div className="h-48 overflow-hidden">
-                <img src={club.bannerImage} alt={club.clubName} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="badge-purple">{club.category}</span>
-                  <span className="text-gold-400 font-bold text-lg">${club.membershipFee}/yr</span>
-                </div>
-                <p className="text-gray-400 text-sm line-clamp-2">{club.description}</p>
-              </div>
-            </div>
-
             <div className="card-glass p-5">
-              <h3 className="text-white font-semibold mb-3">What you get:</h3>
+              <h3 className="text-white font-semibold mb-3">Event Details:</h3>
               <ul className="space-y-2">
                 {[
-                  "Access to all club events",
-                  "Member-only announcements",
-                  "Connect with other members",
-                  "1 year membership validity",
+                  `📅 ${new Date(event.eventDate).toLocaleDateString("en", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}`,
+                  `📍 ${event.location}`,
+                  `💰 Entry Fee: $${event.eventFee}`,
+                  `👥 Max Attendees: ${event.maxAttendees || "Unlimited"}`,
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2.5 text-gray-400 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -234,20 +214,17 @@ const CheckoutPage = () => {
           {/* Right — Payment */}
           <div>
             <div className="card-glass p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-gold-500 flex items-center justify-center">
-                  <Star className="w-5 h-5 text-white" fill="white" />
-                </div>
-                <div>
-                  <h2 className="text-white font-display font-bold text-lg">Complete Payment</h2>
-                  <p className="text-gray-500 text-sm">Annual membership · ${club.membershipFee}</p>
-                </div>
-              </div>
+              <h2 className="text-white font-display font-bold text-lg mb-1">
+                Complete Payment
+              </h2>
+              <p className="text-gray-500 text-sm mb-6">
+                Event registration · ${event.eventFee}
+              </p>
 
               {clientSecret ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <CheckoutForm
-                    club={club}
+                  <EventCheckoutForm
+                    event={event}
                     clientSecret={clientSecret}
                     onSuccess={() => setPaymentSuccess(true)}
                   />
@@ -265,4 +242,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default EventCheckoutPage;

@@ -35,6 +35,9 @@ import MyMemberships from "./pages/dashboard/member/MyMemberships";
 import MyEvents from "./pages/dashboard/member/MyEvents";
 import PaymentHistory from "./pages/dashboard/member/PaymentHistory";
 import MyBookmarks from "./pages/dashboard/member/MyBookmarks";
+import CheckoutPage from "./pages/public/CheckoutPage";
+import EventCheckoutPage from "./pages/public/EventCheckoutPage";
+import ProfilePage from "./pages/public/ProfilePage";
 
 function App() {
   return (
@@ -47,8 +50,10 @@ function App() {
         <Route path="/clubs/:id/checkout" element={<CheckoutPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route path="/events/:id/checkout" element={<EventCheckoutPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       {/* ── Dashboard Routes ── */}
