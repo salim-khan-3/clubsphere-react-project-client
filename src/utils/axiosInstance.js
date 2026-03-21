@@ -2,7 +2,7 @@ import axios from "axios";
 import { auth } from "./firebase";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://clubsphere-node-express-server.vercel.app/api",
 });
 
 // Attach Firebase token to every request
