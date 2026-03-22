@@ -9,7 +9,6 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "../utils/firebase";
 import axiosInstance from "../utils/axiosInstance";
-// import axiosInstance from "../utils/axiosInstance";
 
 const AuthContext = createContext(null);
 
@@ -18,7 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [dbUser, setDbUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Register with email/password
   const register = async (name, email, password, photoURL) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(result.user, { displayName: name, photoURL });
@@ -26,10 +24,8 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
-  // Login
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
-  // Google login
   const googleLogin = async () => {
     const result = await signInWithPopup(auth, googleProvider);
     await saveUserToDB({
@@ -40,13 +36,11 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
-  // Logout
   const logout = () => {
     setDbUser(null);
     return signOut(auth);
   };
 
-  // Save user to MongoDB
   const saveUserToDB = async (userData) => {
     try {
       const res = await axiosInstance.post("/users", userData);
@@ -56,7 +50,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fetch user role from DB
   const fetchDBUser = async () => {
     try {
       const res = await axiosInstance.get("/users/me");
@@ -89,11 +82,16 @@ export const AuthProvider = ({ children }) => {
     logout,
     fetchDBUser,
     isAdmin: dbUser?.role === "admin",
-    isManager: dbUser?.role === "clubManager",
+    isManager: dbUser?.role === "clubManager" || dbUser?.role === "admin",
     isMember: dbUser?.role === "member",
+    role: dbUser?.role,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

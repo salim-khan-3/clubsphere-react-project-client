@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard, Users, Building2, CreditCard, Menu, X,
-  Calendar, UserCheck, Megaphone, Bookmark, LogOut,
+  LayoutDashboard, Users, Building2, CreditCard, Menu,
+  Calendar, Megaphone, Bookmark, LogOut,
   ChevronRight, Bell, Settings, Star,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -32,15 +32,16 @@ const memberLinks = [
 ];
 
 const DashboardLayout = () => {
-  const { user, dbUser, logout, isAdmin, isManager } = useAuth();
+  const { user, dbUser, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const links = isAdmin ? adminLinks : isManager ? managerLinks : memberLinks;
-  const roleLabel = isAdmin ? "Administrator" : isManager ? "Club Manager" : "Member";
-  const roleBadgeClass = isAdmin
+  const role = dbUser?.role;
+  const links = role === "admin" ? adminLinks : role === "clubManager" ? managerLinks : memberLinks;
+  const roleLabel = role === "admin" ? "Administrator" : role === "clubManager" ? "Club Manager" : "Member";
+  const roleBadgeClass = role === "admin"
     ? "bg-gold-500/20 text-gold-400 border-gold-500/30"
-    : isManager
+    : role === "clubManager"
     ? "bg-primary-900/60 text-primary-300 border-primary-700/40"
     : "bg-green-900/40 text-green-400 border-green-700/40";
 
@@ -52,7 +53,6 @@ const DashboardLayout = () => {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
       <div className="px-6 py-6 border-b border-primary-900/40">
         <NavLink to="/" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-600 to-gold-500 flex items-center justify-center">
@@ -64,7 +64,6 @@ const DashboardLayout = () => {
         </NavLink>
       </div>
 
-      {/* User Profile */}
       <div className="px-6 py-5 border-b border-primary-900/40">
         <div className="flex items-center gap-3">
           <img
@@ -80,7 +79,6 @@ const DashboardLayout = () => {
         </div>
       </div>
 
-      {/* Nav Links */}
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
         <p className="text-gray-600 text-xs uppercase tracking-widest px-3 pb-2 font-semibold">
           Navigation
@@ -91,18 +89,15 @@ const DashboardLayout = () => {
             to={to}
             end={end}
             onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? "active" : ""}`
-            }
+            className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
           >
             <Icon className="w-5 h-5 flex-shrink-0" />
             <span>{label}</span>
-            <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100" />
+            <ChevronRight className="w-4 h-4 ml-auto" />
           </NavLink>
         ))}
       </nav>
 
-      {/* Bottom Actions */}
       <div className="px-4 py-4 border-t border-primary-900/40 space-y-1">
         <NavLink to="/" className="sidebar-link">
           <Settings className="w-5 h-5" />
@@ -118,12 +113,10 @@ const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen bg-dark-900 flex">
-      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 flex-col bg-dark-800 border-r border-primary-900/30 fixed h-full z-30">
         <SidebarContent />
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
@@ -147,9 +140,7 @@ const DashboardLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        {/* Top Bar */}
         <header className="sticky top-0 z-20 bg-dark-800/80 backdrop-blur-md border-b border-primary-900/30 px-6 py-4 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -173,7 +164,6 @@ const DashboardLayout = () => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 p-6 lg:p-8">
           <Outlet />
         </main>
