@@ -1,17 +1,63 @@
-# React + Vite
+# ClubSphere – Membership & Event Management
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![ClubSphere](https://clubsphere-fullstack-project.netlify.app)
 
-Currently, two official plugins are available:
+## 🌐 Live URL
+**[https://clubsphere-fullstack-project.netlify.app](https://clubsphere-fullstack-project.netlify.app)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🎯 Project Purpose
+ClubSphere is a full-stack MERN web application that helps people discover, join, and manage local clubs. Club managers can create and manage clubs and events, members can join clubs and pay membership fees, and an admin oversees the entire platform.
 
-## React Compiler
+## ✨ Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🔐 **Firebase Authentication** — Email/Password + Google OAuth login
+- 👑 **Role-based Dashboards** — Admin, Club Manager, Member
+- 💳 **Stripe Payment Integration** — Paid memberships & event registrations
+- 📊 **Admin Analytics Dashboard** — Revenue charts with Recharts
+- 🔍 **Server-side Search, Filter & Sort** — With pagination
+- ⭐ **Reviews & Ratings** — Members can review clubs
+- 🔖 **Bookmarks/Wishlist** — Save clubs for later
+- 📢 **Club Announcements** — Managers can post updates to members
+- 📱 **Fully Responsive** — Mobile, tablet & desktop
 
-## Expanding the ESLint configuration
+## 🛠 Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# clubsphere-react-project-client
+### Frontend
+| Package | Purpose |
+|---|---|
+| react | UI library |
+| react-router-dom | Client-side routing |
+| @tanstack/react-query | Data fetching & caching |
+| react-hook-form | Form management & validation |
+| framer-motion | Animations |
+| tailwindcss | Utility-first CSS |
+| @stripe/react-stripe-js | Stripe payment UI |
+| firebase | Authentication |
+| axios | HTTP client |
+| recharts | Charts & graphs |
+| react-hot-toast | Toast notifications |
+| sweetalert2 | Confirmation dialogs |
+| lucide-react | Icons |
+
+## 📁 Folder Structure
+client/
+├── public/
+│   └── _redirects
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── common/        # Navbar, Footer, Cards, Spinner
+│   │   ├── home/          # HeroSection, FeaturedClubs, etc.
+│   │   └── dashboard/     # StatCard, DashboardHeader, etc.
+│   ├── contexts/          # AuthContext, ThemeContext
+│   ├── layouts/           # MainLayout, DashboardLayout
+│   ├── pages/
+│   │   ├── public/        # Home, Clubs, Events, Login, Register
+│   │   └── dashboard/
+│   │       ├── admin/     # AdminOverview, ManageUsers, etc.
+│   │       ├── manager/   # ManagerOverview, MyClubs, etc.
+│   │       └── member/    # MemberOverview, MyMemberships, etc.
+│   ├── routes/            # PrivateRoute, AdminRoute, ManagerRoute
+│   └── utils/             # firebase.js, axiosInstance.js
+├── .env.example
+└── netlify.toml
